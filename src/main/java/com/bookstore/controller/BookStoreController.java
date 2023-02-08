@@ -7,5 +7,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/store")
 public class BookStoreController {
 
-
 }

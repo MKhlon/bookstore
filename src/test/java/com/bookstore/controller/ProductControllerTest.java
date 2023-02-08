@@ -11,9 +11,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -21,15 +30,13 @@ public class ProductControllerTest {
 
     @Mock
     private ProductService productService;
-
     @InjectMocks
     private ProductController productController;
-
     private final static Integer ID = 1;
     private final static String PRODUCT_NAME = "Product A";
 
     @Test
-    public void testGetProductByIdFound() {
+    public void getProductByIdWhenProductExistsShouldReturnOk() {
         // given
         var product = new Product();
         product.setId(ID);
@@ -45,7 +52,7 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void testGetProductByIdNotFound() {
+    public void getProductByIdWhenProductDoesNotExistShouldReturnNotFound() {
         // given
         when(productService.findById(ID)).thenReturn(Optional.empty());
 
@@ -54,6 +61,7 @@ public class ProductControllerTest {
 
         // then
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(productService, times(1)).findById(ID);
     }
 
     @Test
@@ -106,19 +114,16 @@ public class ProductControllerTest {
 
     @Test
     public void createProductWithNullInputShouldReturnBadRequest() {
-        // given
-        Product product = null;
-
         // when
-        var response = productController.createProduct(product);
+        var response = productController.createProduct(null);
 
         // then
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(productService, never()).addProduct(product);
+        verify(productService, never()).addProduct(null);
     }
 
     @Test
-    public void updateProductWithValidInputShouldReturnProductAndHttpStatusOK() {
+    public void updateProductWithValidInputShouldReturnUpdatedProduct() {
         // given
         var initialProduct = new Product();
         var updatedProductName = "Updated Product name";
@@ -142,7 +147,7 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void updateProductWithProductNotFoundShouldReturnNotFound() {
+    public void updateProductWithNotExistingProductIdShouldReturnNotFound() {
         // given
         when(productService.findById(ID)).thenReturn(Optional.empty());
 
@@ -153,5 +158,35 @@ public class ProductControllerTest {
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(productService, times(1)).findById(ID);
         verify(productService, never()).addProduct(any(Product.class));
+    }
+
+    @Test
+    public void deleteProductWhenProductExistsShouldDeleteProduct() {
+        // given
+        var product = new Product();
+        product.setId(ID);
+        when(productService.findById(ID)).thenReturn(Optional.of(product));
+
+        // when
+        var response = productController.deleteProduct(ID);
+
+        // then
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        Assertions.assertNull(response.getBody());
+        verify(productService, times(1)).deleteById(ID);
+    }
+
+    @Test
+    public void deleteProductWhenProductDoesNotExistShouldReturnNotFound() {
+        // given
+        when(productService.findById(ID)).thenReturn(Optional.empty());
+
+        // when
+        var response = productController.deleteProduct(ID);
+
+        // then
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        Assertions.assertNull(response.getBody());
+        verify(productService, times(0)).deleteById(ID);
     }
 }
