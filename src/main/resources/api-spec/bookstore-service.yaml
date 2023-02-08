@@ -1,0 +1,11 @@
+openapi: 2.0.0
+info:
+  description: 'Bookstore service API.'
+  version: v1.0
+  title: Bookstore Service API
+  contact:
+    name: Bookstore Service Team
+    url: 'https://wikiprojects.com/Bookstore+Service'
+    email: 'bookstore-service@gmail.com'
+host: 'http://localhost:8080.swagger.io'
+basePath: '/v1'

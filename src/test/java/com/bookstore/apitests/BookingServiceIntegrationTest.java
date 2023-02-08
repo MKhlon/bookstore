@@ -1,30 +1,38 @@
 package com.bookstore.apitests;
 
-import com.bookstore.model.Booking;
+import com.bookstore.dto.BookingDto;
 import com.bookstore.model.BookingStatus;
-import com.bookstore.model.User;
-import com.bookstore.model.enums.BookingStatusType;
-import com.bookstore.utils.Messages;
-import com.bookstore.utils.Utils;
+import com.bookstore.model.enums.BookingStatusName;
+import com.bookstore.utils.DataFactory;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import static com.bookstore.utils.Messages.BOOKING_ID_CAN_NOT_BE_NULL;
+import static com.bookstore.utils.Messages.BOOKING_ID_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.DATE_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.DELIVERY_ADDRESS_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PRODUCT_ID_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PRODUCT_NAME_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.QUANTITY_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.STATUS_ID_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.STATUS_NAME_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.TIME_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.USER_ID_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.USER_NAME_IS_NOT_AS_EXPECTED;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class BookingServiceTest extends BaseTest {
+public class BookingServiceIntegrationTest extends BaseTest {
 
     private static final String API_URL = "/api/booking";
 
@@ -34,8 +42,9 @@ public class BookingServiceTest extends BaseTest {
         final var deliveryAddress = "Poland Krakow";
         final var date = "2022-05-15";
         final var time = "02:00:00.000000000";
+        final var userName = "Maria Khlon";
         final Integer id = 1;
-        final Integer productId = 1;
+        final String productName = "Harry Potter";
 
         // when
         var response = given().
@@ -50,8 +59,8 @@ public class BookingServiceTest extends BaseTest {
         Integer idValue = response.path("id");
 
         // then
-        assumeTrue(id.equals(idValue), Messages.BOOKING_ID_IS_NOT_AS_EXPECTED);
-        verifyResponse(productId, 1, deliveryAddress, date, time, 1, 1, response);
+        assumeTrue(id.equals(idValue), BOOKING_ID_IS_NOT_AS_EXPECTED);
+        verifyResponse(productName, userName, deliveryAddress, date, time, BookingStatusName.SUBMITTED.name(), 1, response);
     }
 
     @Test
@@ -76,8 +85,8 @@ public class BookingServiceTest extends BaseTest {
 
         // then
         assumeTrue(idValue != null);
-        verifyResponse(booking.getProduct().getId(), booking.getUser().getId(), booking.getDeliveryAddress(),
-                booking.getDate().toString(), booking.getTime().toString(), booking.getStatus().getId(),
+        verifyResponse(booking.getProductName(), booking.getUserName(), booking.getDeliveryAddress(),
+                booking.getDate().toString(), booking.getTime().toString(), booking.getStatusName(),
                 booking.getQuantity(), response);
     }
 
@@ -85,7 +94,7 @@ public class BookingServiceTest extends BaseTest {
     public void testUpdateBooking() {
         // given
         // create initial booking
-        var booking = new Booking();
+        var booking = createBooking();
         var response = given()
                 .log().all()
                 .contentType(ContentType.JSON)
@@ -101,8 +110,18 @@ public class BookingServiceTest extends BaseTest {
         Integer idValue = response.path("id");
 
         // create updated booking object
-        var updatedBooking = createBooking();
+        var updatedBooking = new BookingDto();
         updatedBooking.setId(idValue);
+        updatedBooking.setUserName("Test User");
+        updatedBooking.setUserId(2);
+        updatedBooking.setProductId(2);
+        updatedBooking.setProductName("Baby Shark");
+        updatedBooking.setStatusId(3);
+        updatedBooking.setStatusName(BookingStatusName.APPROVED.name());
+        updatedBooking.setDeliveryAddress("Poland, Warsaw");
+        updatedBooking.setDate(LocalDate.now());
+        updatedBooking.setTime(LocalTime.now());
+        updatedBooking.setQuantity(10);
 
         // when
         var updatedResponse = given()
@@ -119,16 +138,17 @@ public class BookingServiceTest extends BaseTest {
                 .response();
 
         // then
-        assumeTrue(updatedResponse.path("id") != null);
-        verifyResponse(updatedBooking.getProduct().getId(), updatedBooking.getUser().getId(),
-                updatedBooking.getDeliveryAddress(), updatedBooking.getDate().toString(), updatedBooking.getTime().toString(),
-                updatedBooking.getStatus().getId(), updatedBooking.getQuantity(), updatedResponse);
+        assumeTrue(updatedResponse.path("id") != null, BOOKING_ID_CAN_NOT_BE_NULL);
+        assumeTrue(updatedResponse.path("id").equals(idValue), BOOKING_ID_IS_NOT_AS_EXPECTED);
+        verifyResponse(updatedBooking.getProductName(), updatedBooking.getUserName(), updatedBooking.getDeliveryAddress(),
+                updatedBooking.getDate().toString(), updatedBooking.getTime().toString(), updatedBooking.getStatusName(),
+                updatedBooking.getQuantity(), updatedResponse);
     }
 
     @Test
     public void testDeleteBooking() {
         // given
-        var booking = new Booking();
+        var booking = createBooking();
         var bookingId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
@@ -155,36 +175,32 @@ public class BookingServiceTest extends BaseTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private void verifyResponse(Integer productId, Integer userId, String deliveryAddress, String date, String time,
-                                Integer statusId, Integer quantity, Response response) {
+    private void verifyResponse(String productName, String userName, String deliveryAddress, String date, String time,
+                                String statusName, Integer quantity, Response response) {
         assertAll(
-                () -> Assertions.assertEquals(productId, response.path("product.id"),
-                        Messages.PRODUCT_ID_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(userId, response.path("user.id"),
-                        Messages.USER_ID_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(deliveryAddress, response.path("deliveryAddress"),
-                        Messages.DELIVERY_ADDRESS_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(date, response.path("date"),
-                        Messages.DATE_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(time, response.path("time"),
-                        Messages.TIME_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(statusId, response.path("status.id"),
-                        Messages.STATUS_ID_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(quantity, response.path("quantity"),
-                        Messages.QUANTITY_IS_NOT_AS_EXPECTED)
+                () -> Assertions.assertEquals(productName, response.path("productName"), PRODUCT_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertNotNull(response.path("productId"), PRODUCT_ID_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(userName, response.path("userName"), USER_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertNotNull(response.path("userId"), USER_ID_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(deliveryAddress, response.path("deliveryAddress"), DELIVERY_ADDRESS_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(date, response.path("date"), DATE_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(time, response.path("time"), TIME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(statusName, response.path("statusName"), STATUS_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertNotNull(response.path("statusId"), STATUS_ID_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(quantity, response.path("quantity"), QUANTITY_IS_NOT_AS_EXPECTED)
         );
     }
 
-    private Booking createBooking() {
+    private BookingDto createBooking() {
 
-        var booking = new Booking();
+        var booking = new BookingDto();
 
         //create Product
-        var product = Utils.createDefaultProduct();
+        var productDto = DataFactory.getProduct();
         var productId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
-                .body(product)
+                .body(productDto)
                 .when()
                 .post("/api/product")
                 .then()
@@ -193,10 +209,10 @@ public class BookingServiceTest extends BaseTest {
                 .statusCode(HttpStatus.CREATED.value())
                 .extract()
                 .jsonPath().getInt("id");
-        product.setId(productId);
+        productDto.setId(productId);
 
         //create User
-        var user = new User();
+        var user = DataFactory.getUser();
         var userId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
@@ -213,13 +229,16 @@ public class BookingServiceTest extends BaseTest {
 
         // create Status object
         var status = new BookingStatus();
-        status.setName(BookingStatusType.SUBMITTED);
+        status.setName(BookingStatusName.SUBMITTED);
         status.setId(1);
 
-        // fulfill Booking object
-        booking.setUser(user);
-        booking.setProduct(product);
-        booking.setStatus(status);
+        // fulfill Booking
+        booking.setUserName(user.getUserName());
+        booking.setUserId(userId);
+        booking.setProductName(productDto.getName());
+        booking.setProductId(productDto.getId());
+        booking.setStatusName(status.getName().name());
+        booking.setStatusId(status.getId());
         booking.setDeliveryAddress("UK, Cambridge");
         booking.setDate(LocalDate.now());
         booking.setTime(LocalTime.now());

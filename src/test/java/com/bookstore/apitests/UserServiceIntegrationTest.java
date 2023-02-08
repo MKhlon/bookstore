@@ -1,25 +1,31 @@
 package com.bookstore.apitests;
 
-import com.bookstore.model.Role;
-import com.bookstore.model.User;
+import com.bookstore.dto.UserDto;
 import com.bookstore.model.enums.RoleType;
-import com.bookstore.utils.Messages;
+import com.bookstore.utils.DataFactory;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static com.bookstore.utils.Messages.ADDRESS_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.EMAIL_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.LOGIN_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PASSWORD_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PHONE_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.ROLE_ID_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.ROLE_NAME_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.USER_ID_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.USER_NAME_IS_NOT_AS_EXPECTED;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class UserServiceTest extends BaseTest {
+public class UserServiceIntegrationTest extends BaseTest {
 
     private static final String API_URL = "/api/user";
 
@@ -49,14 +55,14 @@ public class UserServiceTest extends BaseTest {
         Integer idValue = response.path("id");
 
         // then
-        assumeTrue(id.equals(idValue), Messages.USER_ID_IS_NOT_AS_EXPECTED);
+        assumeTrue(id.equals(idValue), USER_ID_IS_NOT_AS_EXPECTED);
         verifyResponse(name, roleId, roleName, email, phone, address, login, password, response);
     }
 
     @Test
     public void testCreateUser() {
         // given
-        var user = updateUser(new User());
+        var user = DataFactory.getUser();
 
         // when
         var response = given()
@@ -74,7 +80,7 @@ public class UserServiceTest extends BaseTest {
 
         // then
         assumeTrue(response.path("id") != null);
-        verifyResponse(user.getName(), user.getRole().getId(), user.getRole().getName().name(), user.getEmail(),
+        verifyResponse(user.getUserName(), user.getRoleId(), user.getRoleName(), user.getEmail(),
                 user.getPhone(), user.getAddress(), user.getLogin(), user.getPassword(), response);
     }
 
@@ -82,11 +88,11 @@ public class UserServiceTest extends BaseTest {
     public void testUpdateUser() {
         // given
         // create new user
-        var user = new User();
+        var userDto = DataFactory.getUser();
         var userId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
-                .body(user)
+                .body(userDto)
                 .when()
                 .post(API_URL)
                 .then()
@@ -96,16 +102,16 @@ public class UserServiceTest extends BaseTest {
                 .extract()
                 .jsonPath().getInt("id");
         // fill with updated values
-        updateUser(user);
-        user.setId(userId);
+        updateUser(userDto);
+        userDto.setId(userId);
 
         // when
         var response = given()
                 .log().all()
                 .contentType(ContentType.JSON)
-                .body(user)
+                .body(userDto)
                 .when()
-                .put(API_URL + "/" + user.getId())
+                .put(API_URL + "/" + userDto.getId())
                 .then()
                 .log().all()
                 .assertThat()
@@ -114,18 +120,18 @@ public class UserServiceTest extends BaseTest {
                 .response();
 
         // then
-        verifyResponse(user.getName(), user.getRole().getId(), user.getRole().getName().name(), user.getEmail(),
-                user.getPhone(), user.getAddress(), user.getLogin(), user.getPassword(), response);
+        verifyResponse(userDto.getUserName(), userDto.getRoleId(), userDto.getRoleName(), userDto.getEmail(),
+                userDto.getPhone(), userDto.getAddress(), userDto.getLogin(), userDto.getPassword(), response);
     }
 
     @Test
     public void testDeleteUser() {
         // given
-        var user = new User();
+        var userDto = DataFactory.getUser();
         var userId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
-                .body(user)
+                .body(userDto)
                 .when()
                 .post(API_URL)
                 .then()
@@ -151,36 +157,26 @@ public class UserServiceTest extends BaseTest {
     private void verifyResponse(String name, Integer roleId, String roleName, String email, String phone, String address,
                                 String login, String password, Response response) {
         assertAll(
-                () -> Assertions.assertEquals(name, response.path("name"),
-                        Messages.USER_NAME_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(roleId, response.path("role.id"),
-                        Messages.ROLE_ID_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(roleName, response.path("role.name"),
-                        Messages.ROLE_NAME_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(email, response.path("email"),
-                        Messages.EMAIL_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(phone, response.path("phone"),
-                        Messages.PHONE_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(address, response.path("address"),
-                        Messages.ADDRESS_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(login, response.path("login"),
-                        Messages.LOGIN_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(password, response.path("password"),
-                        Messages.PASSWORD_IS_NOT_AS_EXPECTED)
+                () -> Assertions.assertEquals(name, response.path("userName"), USER_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(roleId, response.path("roleId"), ROLE_ID_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(roleName, response.path("roleName"), ROLE_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(email, response.path("email"), EMAIL_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(phone, response.path("phone"), PHONE_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(address, response.path("address"), ADDRESS_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(login, response.path("login"), LOGIN_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(password, response.path("password"), PASSWORD_IS_NOT_AS_EXPECTED)
         );
     }
 
-    private User updateUser(User user) {
-        user.setName("Test user name");
-        user.setAddress("Poland, Krakow");
-        user.setEmail("test@gmail.com");
-        user.setPhone("+44111225535");
-        user.setLogin("test login value");
-        user.setPassword("strong test password");
-        var role = new Role();
-        role.setId(1);
-        role.setName(RoleType.ADMIN);
-        user.setRole(role);
-        return user;
+    private UserDto updateUser(UserDto userDto) {
+        userDto.setUserName("Test user name");
+        userDto.setAddress("Poland, Krakow");
+        userDto.setEmail("test@gmail.com");
+        userDto.setPhone("+44111225535");
+        userDto.setLogin("test login value");
+        userDto.setPassword("strong test password");
+        userDto.setRoleId(1);
+        userDto.setRoleName(RoleType.ADMIN.name());
+        return userDto;
     }
 }

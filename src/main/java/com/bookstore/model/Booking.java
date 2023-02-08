@@ -1,6 +1,5 @@
 package com.bookstore.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -37,7 +36,6 @@ public class Booking {
     @Column(name = "delivery_date")
     private LocalDate date;
 
-    @JsonFormat(pattern = "HH:mm:ss.SSSSSSSSS")
     @Column(name = "delivery_time")
     private LocalTime time;
 

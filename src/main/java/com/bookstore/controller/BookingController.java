@@ -1,7 +1,7 @@
 package com.bookstore.controller;
 
-import com.bookstore.business.BookingService;
-import com.bookstore.model.Booking;
+import com.bookstore.dto.BookingDto;
+import com.bookstore.services.BookingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,37 +26,36 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Booking> getBookingById(@PathVariable("id") Integer id) {
+    public ResponseEntity<BookingDto> getBookingById(@PathVariable("id") Integer id) {
         return this.bookingService.findById(id).map(b ->
                         new ResponseEntity<>(b, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-
     @PostMapping
-    public ResponseEntity<Booking> createBooking(@RequestBody Booking booking) {
+    public ResponseEntity<BookingDto> createBooking(@RequestBody BookingDto booking) {
         if (booking == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        this.bookingService.saveBooking(booking);
-        return new ResponseEntity<>(booking, HttpStatus.CREATED);
+        var createdBooking = this.bookingService.saveBooking(booking);
+        return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Booking> updateBooking(
+    public ResponseEntity<BookingDto> updateBooking(
             @PathVariable("id") Integer id,
-            @RequestBody Booking booking) {
+            @RequestBody BookingDto bookingDto) {
         if (bookingService.findById(id).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        booking.setId(id);
-        var updatedBooking = bookingService.saveBooking(booking);
+        bookingDto.setId(id);
+        var updatedBooking = bookingService.saveBooking(bookingDto);
         return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Booking> deleteBooking(@PathVariable("id") Integer id) {
-        Optional<Booking> booking = bookingService.findById(id);
+    public ResponseEntity<BookingDto> deleteBooking(@PathVariable("id") Integer id) {
+        Optional<BookingDto> booking = bookingService.findById(id);
         if (booking.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

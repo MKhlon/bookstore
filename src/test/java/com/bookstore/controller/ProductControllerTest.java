@@ -1,7 +1,7 @@
 package com.bookstore.controller;
 
-import com.bookstore.business.ProductService;
-import com.bookstore.model.Product;
+import com.bookstore.dto.ProductDto;
+import com.bookstore.services.ProductService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +36,9 @@ public class ProductControllerTest {
     private final static String PRODUCT_NAME = "Product A";
 
     @Test
-    public void getProductByIdWhenProductExistsShouldReturnOk() {
+    public void whenGetProductByIdForExistingProductThenReturnOk() {
         // given
-        var product = new Product();
+        var product = new ProductDto();
         product.setId(ID);
         product.setName(PRODUCT_NAME);
         when(productService.findById(ID)).thenReturn(Optional.of(product));
@@ -53,7 +53,7 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void getProductByIdWhenProductDoesNotExistShouldReturnNotFound() {
+    public void whenGetNotExistingProductByIdThenReturnNotFound() {
         // given
         when(productService.findById(ID)).thenReturn(Optional.empty());
 
@@ -66,11 +66,11 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void testListAllProductsFound() {
+    public void whenGetListAllExistingProductsThenReturnFound() {
         // given
         var products = Arrays.asList(
-                new Product(),
-                new Product()
+                new ProductDto(),
+                new ProductDto()
         );
         when(productService.findAllProducts()).thenReturn(products);
 
@@ -84,10 +84,10 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void testListAllProductsNotFound() {
+    public void whenGetListAllNotExistingProductsThenReturnNotFound() {
         // given
-        List<Product> products = Collections.emptyList();
-        when(productService.findAllProducts()).thenReturn(products);
+        List<ProductDto> productDtos = Collections.emptyList();
+        when(productService.findAllProducts()).thenReturn(productDtos);
 
         // when
         var response = productController.listAllProducts();
@@ -98,13 +98,13 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void createProductWithValidInputShouldReturnCreatedStatus() {
+    public void whenCreateProductWithValidInputThenReturnCreated() {
         // given
-        var product = new Product();
+        var product = new ProductDto();
         // productId is set because valid return from saveProduct() should have productId
         when(productService.saveProduct(product))
                 .thenAnswer(invocation -> {
-                    Product p = invocation.getArgument(0);
+                    ProductDto p = invocation.getArgument(0);
                     p.setId(333);
                     return p;
                 });
@@ -120,7 +120,7 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void createProductWithNullInputShouldReturnBadRequest() {
+    public void whenCreateProductWithNullInputThenReturnBadRequest() {
         // when
         var response = productController.createProduct(null);
 
@@ -130,45 +130,45 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void updateProductWithValidInputShouldReturnUpdatedProduct() {
+    public void whenUpdateProductWithValidInputThenReturnUpdatedProduct() {
         // given
-        var product = new Product();
-        product.setId(ID);
-        product.setName(PRODUCT_NAME);
+        var productDto = new ProductDto();
+        productDto.setId(ID);
+        productDto.setName(PRODUCT_NAME);
 
-        var newProduct = new Product();
-        newProduct.setName("Updated Product name");
+        var newProductDto = new ProductDto();
+        newProductDto.setName("Updated Product name");
 
         // when
-        when(productService.findById(ID)).thenReturn(Optional.of(product));
-        when(productService.saveProduct(newProduct)).thenReturn(newProduct);
+        when(productService.findById(ID)).thenReturn(Optional.of(productDto));
+        when(productService.saveProduct(newProductDto)).thenReturn(newProductDto);
 
         // then
-        var response = productController.updateProduct(ID, newProduct);
+        var response = productController.updateProduct(ID, newProductDto);
         verify(productService, times(1)).findById(ID);
-        verify(productService, times(1)).saveProduct(newProduct);
+        verify(productService, times(1)).saveProduct(newProductDto);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(newProduct.getName(), Objects.requireNonNull(response.getBody()).getName());
+        Assertions.assertEquals(newProductDto.getName(), Objects.requireNonNull(response.getBody()).getName());
     }
 
     @Test
-    public void updateProductWithNotExistingProductIdShouldReturnNotFound() {
+    public void whenUpdateProductWithNotExistingProductIdThenReturnNotFound() {
         // given
         when(productService.findById(ID)).thenReturn(Optional.empty());
 
         // when
-        var response = productController.updateProduct(ID, new Product());
+        var response = productController.updateProduct(ID, new ProductDto());
 
         // then
         verify(productService, times(1)).findById(ID);
-        verify(productService, never()).saveProduct(any(Product.class));
+        verify(productService, never()).saveProduct(any(ProductDto.class));
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void deleteProductWhenProductExistsShouldDeleteProduct() {
+    public void whenDeleteExisingProductThenReturnNoContent() {
         // given
-        var product = new Product();
+        var product = new ProductDto();
         product.setId(ID);
         when(productService.findById(ID)).thenReturn(Optional.of(product));
 
@@ -182,7 +182,7 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void deleteProductWhenProductDoesNotExistShouldReturnNotFound() {
+    public void whenDeleteNotExistingProductThenReturnNotFound() {
         // given
         when(productService.findById(ID)).thenReturn(Optional.empty());
 

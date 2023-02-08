@@ -1,6 +1,6 @@
 package com.bookstore.model.enums;
 
-public enum BookingStatusType {
+public enum BookingStatusName {
     SUBMITTED,
     REJECTED,
     APPROVED,

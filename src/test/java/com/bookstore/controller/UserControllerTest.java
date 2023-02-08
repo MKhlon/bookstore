@@ -1,8 +1,8 @@
 package com.bookstore.controller;
 
 
-import com.bookstore.business.UserService;
-import com.bookstore.model.User;
+import com.bookstore.dto.UserDto;
+import com.bookstore.services.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,12 +32,12 @@ public class UserControllerTest {
     private UserController userController;
 
     @Test
-    public void getUserByIdWhenUserExistsShouldReturnOk() {
+    public void whenGetExistingUserByIdThenReturnOk() {
         // given
-        var user = new User();
-        user.setId(ID);
-        user.setName(USER_NAME);
-        when(userService.findById(ID)).thenReturn(Optional.of(user));
+        var userDto = new UserDto();
+        userDto.setId(ID);
+        userDto.setUserName(USER_NAME);
+        when(userService.findById(ID)).thenReturn(Optional.of(userDto));
 
         // when
         var response = userController.getUserById(ID);
@@ -45,11 +45,11 @@ public class UserControllerTest {
         // then
         verify(userService, times(1)).findById(ID);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(user, response.getBody());
+        Assertions.assertEquals(userDto, response.getBody());
     }
 
     @Test
-    public void getUserByIdWhenUserDoesNotExistShouldReturnNotFound() {
+    public void whenGetNotExistingUserByIdThenReturnNotFound() {
         // given
         when(userService.findById(ID)).thenReturn(Optional.empty());
 
@@ -62,29 +62,29 @@ public class UserControllerTest {
     }
 
     @Test
-    public void createUserWithValidInputShouldReturnCreatedUser() {
+    public void whenCreateUserWithValidInputThenReturnCreatedUser() {
         // given
-        var user = new User();
+        var userDto = new UserDto();
         // userId is set because valid return from saveUser() should have userId
-        when(userService.saveUser(user))
+        when(userService.saveUser(userDto))
                 .thenAnswer(invocation -> {
-                    User u = invocation.getArgument(0);
+                    UserDto u = invocation.getArgument(0);
                     u.setId(333);
                     return u;
                 });
 
         // when
-        var response = userController.createUser(user);
+        var response = userController.createUser(userDto);
 
         // then
-        verify(userService, times(1)).saveUser(user);
+        verify(userService, times(1)).saveUser(userDto);
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
         Assertions.assertNotNull(Objects.requireNonNull(response.getBody()).getId());
-        Assertions.assertEquals(user, response.getBody());
+        Assertions.assertEquals(userDto, response.getBody());
     }
 
     @Test
-    public void createUserWithNullInputShouldReturnBadRequest() {
+    public void whenCreateUserWithNullInputThenReturnBadRequest() {
         // when
         var response = userController.createUser(null);
 
@@ -94,47 +94,46 @@ public class UserControllerTest {
     }
 
     @Test
-    public void updateUserWithValidInputShouldReturnUpdatedUser() {
+    public void whenUpdateUserWithValidInputThenReturnUpdatedUser() {
         // given
-        var user = new User();
-        user.setId(ID);
-        user.setName(USER_NAME);
-
-        var newUser = new User();
-        newUser.setName("Updated User name");
+        var userDto = new UserDto();
+        userDto.setId(ID);
+        userDto.setUserName(USER_NAME);
+        var newUserDto = new UserDto();
+        newUserDto.setUserName("Updated User Name");
 
         // when
-        when(userService.findById(ID)).thenReturn(Optional.of(user));
-        when(userService.saveUser(newUser)).thenReturn(newUser);
+        when(userService.findById(ID)).thenReturn(Optional.of(userDto));
+        when(userService.saveUser(newUserDto)).thenReturn(newUserDto);
 
         // then
-        var response = userController.updateUser(ID, newUser);
+        var response = userController.updateUser(ID, newUserDto);
         verify(userService, times(1)).findById(ID);
-        verify(userService, times(1)).saveUser(newUser);
+        verify(userService, times(1)).saveUser(newUserDto);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(newUser.getName(), Objects.requireNonNull(response.getBody()).getName());
+        Assertions.assertEquals(newUserDto.getUserName(), Objects.requireNonNull(response.getBody()).getUserName());
     }
 
     @Test
-    public void updateUserWithNotExistingUserIdShouldReturnNotFound() {
+    public void whenUpdateUserWithNotExistingUserIdThenReturnNotFound() {
         // given
         when(userService.findById(ID)).thenReturn(Optional.empty());
 
         // when
-        var response = userController.updateUser(ID, new User());
+        var response = userController.updateUser(ID, new UserDto());
 
         // then
         verify(userService, times(1)).findById(ID);
-        verify(userService, never()).saveUser(any(User.class));
+        verify(userService, never()).saveUser(any(UserDto.class));
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void deleteUserWhenUserExistsShouldDeleteUser() {
+    public void whenDeleteExistingUserThenReturnNoContent() {
         // given
-        var user = new User();
-        user.setId(ID);
-        when(userService.findById(ID)).thenReturn(Optional.of(user));
+        var userDto = new UserDto();
+        userDto.setId(ID);
+        when(userService.findById(ID)).thenReturn(Optional.of(userDto));
 
         // when
         var response = userController.deleteUser(ID);
@@ -146,7 +145,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void deleteUserWhenUserDoesNotExistShouldReturnNotFound() {
+    public void whenDeleteNotExistingUserThenReturnNotFound() {
         // given
         when(userService.findById(ID)).thenReturn(Optional.empty());
 

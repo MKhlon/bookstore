@@ -1,8 +1,7 @@
 package com.bookstore.apitests;
 
 import com.bookstore.model.Product;
-import com.bookstore.utils.Messages;
-import com.bookstore.utils.Utils;
+import com.bookstore.utils.DataFactory;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
@@ -11,19 +10,23 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static com.bookstore.utils.Messages.IMAGE_PATH_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.NUMBER_OF_ALL_PRODUCTS_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PRICE_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PRODUCT_AUTHOR_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PRODUCT_DESCRIPTION_IS_NOT_AS_EXPECTED;
+import static com.bookstore.utils.Messages.PRODUCT_NAME_IS_NOT_AS_EXPECTED;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ProductServiceTest extends BaseTest {
+public class ProductServiceIntegrationTest extends BaseTest {
 
     private static final String API_URL = "/api/product";
 
@@ -50,7 +53,7 @@ public class ProductServiceTest extends BaseTest {
         Integer idValue = response.path("id");
 
         // then
-        assumeTrue(id.equals(idValue), Messages.PRODUCT_ID_IS_NOT_AS_EXPECTED);
+        assumeTrue(id.equals(idValue), PRODUCT_NAME_IS_NOT_AS_EXPECTED);
         verifyResponse(name, description, author, price, imagePath, response);
     }
 
@@ -70,13 +73,13 @@ public class ProductServiceTest extends BaseTest {
 
         // then
         int size = response.path("$.size()");
-        Assertions.assertEquals(2, size, Messages.NUMBER_OF_ALL_PRODUCTS_IS_NOT_AS_EXPECTED);
+        Assertions.assertEquals(2, size, NUMBER_OF_ALL_PRODUCTS_IS_NOT_AS_EXPECTED);
     }
 
     @Test
     public void testCreateProduct() {
         // given
-        var product = Utils.createDefaultProduct();
+        var product = DataFactory.getProduct();
 
         // when
         var response = given()
@@ -142,16 +145,11 @@ public class ProductServiceTest extends BaseTest {
 
     private void verifyResponse(String name, String description, String author, Float price, String image, Response response) {
         assertAll(
-                () -> Assertions.assertEquals(name, response.path("name"),
-                        Messages.PRODUCT_NAME_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(description, response.path("description"),
-                        Messages.PRODUCT_DESCRIPTION_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(author, response.path("author"),
-                        Messages.PRODUCT_AUTHOR_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(price, response.path("price"),
-                        Messages.PRICE_IS_NOT_AS_EXPECTED),
-                () -> Assertions.assertEquals(image, response.path("imagePath"),
-                        Messages.IMAGE_PATH_IS_NOT_AS_EXPECTED)
+                () -> Assertions.assertEquals(name, response.path("name"), PRODUCT_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(description, response.path("description"), PRODUCT_DESCRIPTION_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(author, response.path("author"), PRODUCT_AUTHOR_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(price, response.path("price"), PRICE_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(image, response.path("imagePath"), IMAGE_PATH_IS_NOT_AS_EXPECTED)
         );
     }
 

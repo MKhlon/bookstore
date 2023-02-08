@@ -1,4 +1,4 @@
-package com.bookstore.business;
+package com.bookstore.services;
 
 import org.springframework.stereotype.Service;
 

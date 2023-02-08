@@ -1,7 +1,9 @@
-package com.bookstore.business;
+package com.bookstore.services;
 
+import com.bookstore.converter.UserConverter;
+import com.bookstore.dto.UserDto;
 import com.bookstore.model.User;
-import com.bookstore.model.repositories.UserRepository;
+import com.bookstore.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,9 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private UserConverter userConverter;
+
     @InjectMocks
     private UserService userService;
 
@@ -41,15 +46,18 @@ class UserServiceTest {
     @Test
     public void testFindByIdSuccess() {
         // given
+        var userDto = new UserDto();
         when(userRepository.findById(ID)).thenReturn(Optional.of(user));
+        when(userConverter.entityToDto(user)).thenReturn(userDto);
 
         // when
         var result = userService.findById(ID);
 
         // then
         verify(userRepository, times(1)).findById(ID);
+        verify(userConverter, times(1)).entityToDto(user);
         assertTrue(result.isPresent());
-        assertEquals(user, result.get());
+        assertEquals(userDto, result.get());
     }
 
     @Test
@@ -66,14 +74,21 @@ class UserServiceTest {
     @Test
     public void testSaveUserSuccess() {
         // given
-        when(userRepository.save(user)).thenReturn(user);
+        var userDto = new UserDto();
+        when(userConverter.dtoToEntity(userDto)).thenReturn(user);
+        var createdUser = new User();
+        when(userRepository.save(user)).thenReturn(createdUser);
+        var createdUserDto = new UserDto();
+        when(userConverter.entityToDto(createdUser)).thenReturn(createdUserDto);
 
         // when
-        var result = userService.saveUser(user);
+        var result = userService.saveUser(userDto);
 
         // then
+        verify(userConverter).dtoToEntity(userDto);
         verify(userRepository, times(1)).save(user);
-        assertEquals(user, result);
+        verify(userConverter).entityToDto(createdUser);
+        assertEquals(createdUserDto, result);
     }
 
     @Test

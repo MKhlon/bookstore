@@ -1,7 +1,9 @@
-package com.bookstore.business;
+package com.bookstore.services;
 
+import com.bookstore.converter.BookingConverter;
+import com.bookstore.dto.BookingDto;
 import com.bookstore.model.Booking;
-import com.bookstore.model.repositories.BookingRepository;
+import com.bookstore.repositories.BookingRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +27,9 @@ class BookingServiceTest {
     @Mock
     private BookingRepository bookingRepository;
 
+    @Mock
+    private BookingConverter bookingConverter;
+
     @InjectMocks
     private BookingService bookingService;
 
@@ -32,30 +37,39 @@ class BookingServiceTest {
     public void findByIdTest() {
         // given
         var booking = new Booking();
-        var bookingOptional = Optional.of(booking);
-        when(bookingRepository.findById(ID)).thenReturn(bookingOptional);
+        var expected = new BookingDto();
+        when(bookingRepository.findById(ID)).thenReturn(Optional.of(booking));
+        when(bookingConverter.entityToDto(booking)).thenReturn(expected);
 
         // when
         var result = bookingService.findById(ID);
 
         // then
         verify(bookingRepository, times(1)).findById(ID);
+        verify(bookingConverter).entityToDto(booking);
         assertTrue(result.isPresent());
-        assertEquals(booking, result.get());
+        assertEquals(expected, result.get());
     }
 
     @Test
-    public void saveBookingTest() {
+    public void createBookingTest() {
         // given
         var booking = new Booking();
-        when(bookingRepository.save(booking)).thenReturn(booking);
+        var dto = new BookingDto();
+        when(bookingConverter.dtoToEntity(dto)).thenReturn(booking);
+        var savedBooking = new Booking();
+        when(bookingRepository.save(booking)).thenReturn(savedBooking);
+        var savedDto = new BookingDto();
+        when(bookingConverter.entityToDto(savedBooking)).thenReturn(savedDto);
 
         // when
-        var result = bookingService.saveBooking(booking);
+        var result = bookingService.saveBooking(dto);
 
         // then
+        verify(bookingConverter).dtoToEntity(dto);
         verify(bookingRepository, times(1)).save(booking);
-        assertEquals(booking, result);
+        verify(bookingConverter).entityToDto(savedBooking);
+        assertEquals(savedDto, result);
     }
 
     @Test

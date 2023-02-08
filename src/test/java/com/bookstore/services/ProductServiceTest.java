@@ -1,7 +1,9 @@
-package com.bookstore.business;
+package com.bookstore.services;
 
+import com.bookstore.converter.ProductConverter;
+import com.bookstore.dto.ProductDto;
 import com.bookstore.model.Product;
-import com.bookstore.model.repositories.ProductRepository;
+import com.bookstore.repositories.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +28,9 @@ class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private ProductConverter productConverter;
+
     @InjectMocks
     private ProductService productService;
 
@@ -33,44 +38,64 @@ class ProductServiceTest {
     void findByIdTest() {
         // given
         var product = new Product();
-        var productOptional = Optional.of(product);
-        when(productRepository.findById(ID)).thenReturn(productOptional);
+        var productDto = new ProductDto();
+        when(productRepository.findById(ID)).thenReturn(Optional.of(product));
+        when(productConverter.entityToDto(product)).thenReturn(productDto);
 
         // when
         var result = productService.findById(ID);
 
         // then
         verify(productRepository, times(1)).findById(ID);
+        verify(productConverter,times(1)).entityToDto(product);
         assertTrue(result.isPresent());
-        assertEquals(product, result.get());
+        assertEquals(productDto, result.get());
     }
 
     @Test
     void findAllProductsTest() {
         // given
-        var products = List.of(new Product(), new Product());
+        var product1 = new Product();
+        product1.setName("test name");
+        var product2 = new Product();
+        product2.setName("test name 2");
+        var products = List.of(product1, product2);
         when(productRepository.findAll()).thenReturn(products);
+        var productDto1 = new ProductDto();
+        var productDto2 = new ProductDto();
+        var productDtos = List.of(new ProductDto(), new ProductDto());
+        when(productConverter.entityToDto(product1)).thenReturn(productDto1);
+        when(productConverter.entityToDto(product2)).thenReturn(productDto2);
 
         // when
         var result = productService.findAllProducts();
 
         // then
         verify(productRepository, times(1)).findAll();
-        assertEquals(products, result);
+        verify(productConverter).entityToDto(product1);
+        verify(productConverter).entityToDto(product2);
+        assertEquals(productDtos, result);
     }
 
     @Test
-    void saveProductTest() {
+    void createProductTest() {
         // given
         var product = new Product();
-        when(productRepository.save(product)).thenReturn(product);
+        var productDto = new ProductDto();
+        when(productConverter.dtoToEntity(productDto)).thenReturn(product);
+        var createdProduct = new Product();
+        when(productRepository.save(product)).thenReturn(createdProduct);
+        var createdProductDto = new ProductDto();
+        when(productConverter.entityToDto(createdProduct)).thenReturn(createdProductDto);
 
         // when
-        var result = productService.saveProduct(product);
+        var result = productService.saveProduct(productDto);
 
         // then
+        verify(productConverter).dtoToEntity(productDto);
         verify(productRepository, times(1)).save(product);
-        assertEquals(product, result);
+        verify(productConverter).entityToDto(createdProduct);
+        assertEquals(createdProductDto, result);
     }
 
     @Test

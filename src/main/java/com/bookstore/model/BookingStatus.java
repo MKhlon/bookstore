@@ -1,6 +1,6 @@
 package com.bookstore.model;
 
-import com.bookstore.model.enums.BookingStatusType;
+import com.bookstore.model.enums.BookingStatusName;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,5 +22,5 @@ public class BookingStatus {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "name")
-    private BookingStatusType name;
+    private BookingStatusName name;
 }

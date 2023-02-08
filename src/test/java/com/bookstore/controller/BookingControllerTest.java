@@ -1,7 +1,7 @@
 package com.bookstore.controller;
 
-import com.bookstore.business.BookingService;
-import com.bookstore.model.Booking;
+import com.bookstore.dto.BookingDto;
+import com.bookstore.services.BookingService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +30,9 @@ public class BookingControllerTest {
     private BookingController bookingController;
 
     @Test
-    public void getBookingByIdWhenBookingExistsShouldReturnOk() {
+    public void whenGetBookingByIdOfExistingBookingThenReturnOk() {
         // given
-        var booking = new Booking();
+        var booking = new BookingDto();
         booking.setId(ID);
 
         // when
@@ -46,7 +46,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    public void getBookingByIdWhenBookingDoesNotExistShouldReturnNotFound() {
+    public void whenGetBookingByIdOfNotExistingBookingThenReturnNotFound() {
         // given
         when(bookingService.findById(ID)).thenReturn(Optional.empty());
 
@@ -59,7 +59,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    public void createBookingWithBookingIsNullShouldReturnBadRequest() {
+    public void whenCreateBookingWithNullBookingThenReturnBadRequest() {
         // when
         var response = bookingController.createBooking(null);
 
@@ -69,13 +69,13 @@ public class BookingControllerTest {
     }
 
     @Test
-    public void createBookingWithValidBookingShouldReturnCreated() {
+    public void whenCreateBookingWithValidBookingThenReturnCreated() {
         // given
-        var booking = new Booking();
+        var booking = new BookingDto();
         // bookingId is set as saveBooking() set up bookingId
         when(bookingService.saveBooking(booking))
                 .thenAnswer(invocation -> {
-                    Booking b = invocation.getArgument(0);
+                    BookingDto b = invocation.getArgument(0);
                     b.setId(555);
                     return b;
                 });
@@ -91,13 +91,13 @@ public class BookingControllerTest {
     }
 
     @Test
-    public void updateBookingWithExistingBookingShouldReturnUpdatedProduct() {
+    public void whenUpdateBookingWithExistingBookingThenReturnUpdatedProduct() {
         // given
-        var booking = new Booking();
+        var booking = new BookingDto();
         booking.setId(77);
         var bookingId = booking.getId();
 
-        var newBooking = new Booking();
+        var newBooking = new BookingDto();
         newBooking.setQuantity(9);
 
         // when
@@ -115,24 +115,23 @@ public class BookingControllerTest {
     }
 
     @Test
-    public void updateBookingWithNotExistingBookingShouldReturnNotFound() {
+    public void whenUpdateBookingWithNotExistingBookingThenReturnNotFound() {
         // given
         when(bookingService.findById(ID)).thenReturn(Optional.empty());
-        var booking = new Booking();
 
         // when
-        var actual = bookingController.updateBooking(ID, booking);
+        var actual = bookingController.updateBooking(ID, new BookingDto());
 
         // then
         Assertions.assertEquals(HttpStatus.NOT_FOUND, actual.getStatusCode());
         verify(bookingService, times(1)).findById(ID);
-        verify(bookingService, never()).saveBooking(any(Booking.class));
+        verify(bookingService, never()).saveBooking(any(BookingDto.class));
     }
 
     @Test
-    public void deleteBookingWhenBookingExistsShouldDeleteBooking() {
+    public void whenDeleteExistingBookingThenReturnNoContent() {
         // given
-        var booking = new Booking();
+        var booking = new BookingDto();
         booking.setId(ID);
         when(bookingService.findById(ID)).thenReturn(Optional.of(booking));
 
@@ -146,7 +145,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    public void deleteBookingWhenBookingDoesNotExistShouldReturnNotFound() {
+    public void whenDeleteNotExistingBookingThenReturnNotFound() {
         // given
         when(bookingService.findById(ID)).thenReturn(Optional.empty());
 

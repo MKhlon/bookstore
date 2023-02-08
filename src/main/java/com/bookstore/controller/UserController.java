@@ -1,9 +1,10 @@
 package com.bookstore.controller;
 
-import com.bookstore.business.UserService;
-import com.bookstore.model.User;
+import com.bookstore.dto.UserDto;
+import com.bookstore.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Optional;
 
 @RestController
+@Validated
 @RequestMapping("/api/user")
 public class UserController {
 
@@ -26,36 +28,35 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") Integer id) {
+    public ResponseEntity<UserDto> getUserById(@PathVariable("id") Integer id) {
         return this.userService.findById(id).map(u ->
                         new ResponseEntity<>(u, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        if (user == null) {
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+        if (userDto == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        this.userService.saveUser(user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        var createdUser = this.userService.saveUser(userDto);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(
-            @PathVariable("id") Integer id,
-            @RequestBody User user) {
+    public ResponseEntity<UserDto> updateUser(
+            @PathVariable("id") Integer id, @RequestBody UserDto userDto) {
         if (userService.findById(id).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        user.setId(id);
-        var updatedUser = userService.saveUser(user);
+        userDto.setId(id);
+        var updatedUser = userService.saveUser(userDto);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUser(@PathVariable("id") Integer id) {
-        Optional<User> user = userService.findById(id);
+    public ResponseEntity<UserDto> deleteUser(@PathVariable("id") Integer id) {
+        Optional<UserDto> user = userService.findById(id);
         if (user.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
