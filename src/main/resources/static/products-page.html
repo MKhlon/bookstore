@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Marshmallow bookstore: Products</title>
+</head>
+<body>
+<h1>Welcome to Products page</h1>
+<table>
+    <tr>
+        <td>Product Name</td>
+        <td>Product Description</td>
+        <td>Author</td>
+        <td>Price</td>
+        <td>Image</td>
+    </tr>
+    <tr th:each="product: ${products}">
+        <td th:text="${product.name}">Name</td>
+        <td th:text="${product.description}">Description</td>
+        <td th:text="${product.author}">Author</td>
+        <td th:text="${product.price}">Price</td>
+        <td th:text="${product.imagePath}">Image</td>
+    </tr>
+</table>
+</body>
+</html>
