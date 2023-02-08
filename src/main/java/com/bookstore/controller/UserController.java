@@ -7,15 +7,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/user")
 public class UserController {
 
-    //get  view user
-
-
-    //post  create user
-
-
-    //put  edit user
-
-
-    // delete  remove user
-
 }
