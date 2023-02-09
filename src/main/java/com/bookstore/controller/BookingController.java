@@ -45,8 +45,8 @@ public class BookingController {
         if (booking == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        this.bookingService.addBooking(booking);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        this.bookingService.saveBooking(booking);
+        return new ResponseEntity<>(booking, HttpStatus.CREATED);
     }
 
     @ApiOperation(value = "Update a booking")
@@ -54,23 +54,12 @@ public class BookingController {
     public ResponseEntity<Booking> updateBooking(
             @ApiParam(value = "Booking ID", required = true) @PathVariable("id") Integer id,
             @ApiParam(value = "Update booking object", required = true) @RequestBody Booking booking) {
-        Optional<Booking> currentBooking = bookingService.findById(id);
-
-        if (currentBooking.isEmpty()) {
+        if (bookingService.findById(id).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
-        Booking bookingToUpdate = currentBooking.get();
-
-        bookingToUpdate.setUser(booking.getUser());
-        bookingToUpdate.setDeliveryAddress(booking.getDeliveryAddress());
-        bookingToUpdate.setDate(booking.getDate());
-        bookingToUpdate.setTime(booking.getTime());
-        bookingToUpdate.setStatus(booking.getStatus());
-        bookingToUpdate.setQuantity(booking.getQuantity());
-
-        bookingService.addBooking(bookingToUpdate);
-        return new ResponseEntity<>(bookingToUpdate, HttpStatus.OK);
+        booking.setId(id);
+        var updatedBooking = bookingService.saveBooking(booking);
+        return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Delete a booking")

@@ -2,7 +2,6 @@ package com.bookstore.controller;
 
 import com.bookstore.business.BookingService;
 import com.bookstore.model.Booking;
-import com.bookstore.utils.Utils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +14,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingControllerTest {
-    private final static Integer ID = 1;
+    private final static Integer ID = 25;
 
     @Mock
     private BookingService bookingService;
@@ -34,15 +32,17 @@ public class BookingControllerTest {
     @Test
     public void getBookingByIdWhenBookingExistsShouldReturnOk() {
         // given
-        var expected = new Booking();
+        var booking = new Booking();
+        booking.setId(ID);
 
         // when
-        when(bookingService.findById(ID)).thenReturn(Optional.of(expected));
-        var actual = bookingController.getBookingById(ID);
+        when(bookingService.findById(ID)).thenReturn(Optional.of(booking));
+        var response = bookingController.getBookingById(ID);
 
         // then
-        Assertions.assertEquals(HttpStatus.OK, actual.getStatusCode());
-        Assertions.assertEquals(expected, actual.getBody());
+        verify(bookingService, times(1)).findById(ID);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(booking, response.getBody());
     }
 
     @Test
@@ -54,53 +54,64 @@ public class BookingControllerTest {
         var actual = bookingController.getBookingById(ID);
 
         // then
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, actual.getStatusCode());
         verify(bookingService, times(1)).findById(ID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, actual.getStatusCode());
     }
 
     @Test
     public void createBookingWithBookingIsNullShouldReturnBadRequest() {
         // when
-        var actual = bookingController.createBooking(null);
+        var response = bookingController.createBooking(null);
 
         // then
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, actual.getStatusCode());
-        verify(bookingService, never()).addBooking(null);
+        verify(bookingService, never()).saveBooking(null);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     public void createBookingWithValidBookingShouldReturnCreated() {
         // given
         var booking = new Booking();
+        // bookingId is set as saveBooking() set up bookingId
+        when(bookingService.saveBooking(booking))
+                .thenAnswer(invocation -> {
+                    Booking b = invocation.getArgument(0);
+                    b.setId(555);
+                    return b;
+                });
 
         // when
-        var actual = bookingController.createBooking(booking);
+        var response = bookingController.createBooking(booking);
 
         // then
-        Assertions.assertEquals(HttpStatus.CREATED, actual.getStatusCode());
-        verify(bookingService, times(1)).addBooking(booking);
+        verify(bookingService, times(1)).saveBooking(booking);
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assertions.assertNotNull(Objects.requireNonNull(response.getBody()).getId());
+        Assertions.assertEquals(booking, response.getBody());
     }
 
     @Test
     public void updateBookingWithExistingBookingShouldReturnUpdatedProduct() {
         // given
-        var booking = Utils.createDefaultBooking();
-        Optional<Booking> currentBooking = Optional.of(booking);
-        var bookingId = currentBooking.get().getId();
-        when(bookingService.findById(bookingId)).thenReturn(currentBooking);
-        doNothing().when(bookingService).addBooking(currentBooking.get());
-        var bookingToUpdate = new Booking();
-        bookingToUpdate.setQuantity(9);
+        var booking = new Booking();
+        booking.setId(77);
+        var bookingId = booking.getId();
+
+        var newBooking = new Booking();
+        newBooking.setQuantity(9);
 
         // when
-        var response = bookingController.updateBooking(bookingId, bookingToUpdate);
+        when(bookingService.findById(bookingId)).thenReturn(Optional.of(booking));
+        when(bookingService.saveBooking(newBooking)).thenReturn(newBooking);
 
-        //then
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(bookingToUpdate.getQuantity(), Objects.requireNonNull(response.getBody()).getQuantity());
-        Assertions.assertEquals(booking, response.getBody());
+        // then
+        var response = bookingController.updateBooking(bookingId, newBooking);
+
         verify(bookingService, times(1)).findById(bookingId);
-        verify(bookingService, times(1)).addBooking(booking);
+        verify(bookingService, times(1)).saveBooking(newBooking);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(newBooking.getQuantity(), Objects.requireNonNull(response.getBody()).getQuantity());
+        Assertions.assertEquals(newBooking, response.getBody());
     }
 
     @Test
@@ -115,7 +126,7 @@ public class BookingControllerTest {
         // then
         Assertions.assertEquals(HttpStatus.NOT_FOUND, actual.getStatusCode());
         verify(bookingService, times(1)).findById(ID);
-        verify(bookingService, never()).addBooking(any(Booking.class));
+        verify(bookingService, never()).saveBooking(any(Booking.class));
     }
 
     @Test

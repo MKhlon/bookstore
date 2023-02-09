@@ -3,8 +3,6 @@ server:
 
 #change profile to 'prod' if you want to use mysql database (don't forget to start related container using docker-compose up -d)
 spring:
-  profiles:
-    active: dev
   jpa:
     defer-datasource-initialization: true
     generate-ddl: false

@@ -21,11 +21,11 @@ public class ProductService {
 
     public List<Product> findAllProducts() { return productRepository.findAll();}
 
-    public void addProduct(Product product) {
+    public Product saveProduct(Product product) {
         if(product == null) {
             throw new RuntimeException("Product can not be null");
         }
-        this.productRepository.save(product);
+        return this.productRepository.save(product);
     }
 
     public void deleteById(Integer id) {

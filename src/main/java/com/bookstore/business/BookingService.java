@@ -18,11 +18,11 @@ public class BookingService {
         return bookingRepository.findById(id);
     }
 
-    public void addBooking(Booking booking) {
-        if(booking == null) {
+    public Booking saveBooking(Booking booking) {
+        if (booking == null) {
             throw new RuntimeException("Booking can not be null");
         }
-        this.bookingRepository.save(booking);
+        return this.bookingRepository.save(booking);
     }
 
     public void deleteById(Integer id) {
