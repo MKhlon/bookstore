@@ -10,8 +10,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-import java.sql.Time;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 @Data
 @Entity
 @Table(name = "bookings")
@@ -33,10 +34,10 @@ public class Booking {
     private String deliveryAddress;
 
     @Column(name = "delivery_date")
-    private Date date;
+    private LocalDate date;
 
     @Column(name = "delivery_time")
-    private Time time;
+    private LocalTime time;
 
     @ManyToOne
     @JoinColumn(name = "status_id")

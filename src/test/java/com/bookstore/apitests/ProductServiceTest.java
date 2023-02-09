@@ -1,8 +1,8 @@
 package com.bookstore.apitests;
 
+import com.bookstore.model.Product;
 import com.bookstore.utils.Messages;
 import com.bookstore.utils.Utils;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
@@ -35,7 +35,7 @@ public class ProductServiceTest extends BaseTest {
         final var author = "J.K.Rowling";
         final var price = 12.50F;
         final var imagePath = "http://www.testimages.harry_potter.jpg";
-        Integer id = 1;
+        final Integer id = 1;
 
         // when
         var response = given().
@@ -74,7 +74,7 @@ public class ProductServiceTest extends BaseTest {
     }
 
     @Test
-    public void testCreatedProduct() {
+    public void testCreateProduct() {
         // given
         var product = Utils.createDefaultProduct();
 
@@ -101,32 +101,7 @@ public class ProductServiceTest extends BaseTest {
     @Test
     public void testUpdateProduct() {
         // given
-        var product = Utils.createDefaultProduct();
-        final var updatedName = "Updated Test Product";
-        final var updatedDescription = "Updated Test Product";
-        final var updatedPrice = 20.0F;
-        final var updatedAuthor = "Updated Test Author";
-        final var updatedImagePath = "http://www.testimages.updateImage.jpg";
-
-        var productId = RestAssured
-                .given()
-                .log().all()
-                .contentType(ContentType.JSON)
-                .body(product)
-                .when()
-                .post(API_URL)
-                .then()
-                .log().all()
-                .assertThat()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract()
-                .jsonPath().getInt("id");
-
-        product.setName(updatedName);
-        product.setDescription(updatedDescription);
-        product.setPrice(updatedPrice);
-        product.setAuthor(updatedAuthor);
-        product.setImagePath(updatedImagePath);
+        var product = createProduct();
 
         // when
         var response = given()
@@ -134,7 +109,7 @@ public class ProductServiceTest extends BaseTest {
                 .contentType(ContentType.JSON)
                 .body(product)
                 .when()
-                .put(API_URL + "/" + productId)
+                .put(API_URL + "/" + product.getId())
                 .then()
                 .log().all()
                 .assertThat()
@@ -143,13 +118,45 @@ public class ProductServiceTest extends BaseTest {
                 .response();
 
         // then
-        verifyResponse(updatedName, updatedDescription, updatedAuthor, updatedPrice, updatedImagePath, response);
+        verifyResponse(product.getName(), product.getDescription(), product.getAuthor(), product.getPrice(),
+                product.getImagePath(), response);
     }
 
     @Test
     public void deleteProductTest() {
         // given
-        var product = Utils.createDefaultProduct();
+        var product = createProduct();
+
+        // when
+        var response = given()
+                .when()
+                .log().all()
+                .delete("/api/product/{id}", product.getId());
+
+        // then
+        response
+                .then()
+                .log().all()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+    }
+
+    private void verifyResponse(String name, String description, String author, Float price, String image, Response response) {
+        assertAll(
+                () -> Assertions.assertEquals(name, response.path("name"),
+                        Messages.PRODUCT_NAME_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(description, response.path("description"),
+                        Messages.PRODUCT_DESCRIPTION_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(author, response.path("author"),
+                        Messages.PRODUCT_AUTHOR_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(price, response.path("price"),
+                        Messages.PRICE_IS_NOT_AS_EXPECTED),
+                () -> Assertions.assertEquals(image, response.path("imagePath"),
+                        Messages.IMAGE_PATH_IS_NOT_AS_EXPECTED)
+        );
+    }
+
+    private Product createProduct() {
+        var product = new Product();
         var productId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
@@ -163,26 +170,13 @@ public class ProductServiceTest extends BaseTest {
                 .extract()
                 .jsonPath().getInt("id");
 
-        // when
-        var response = given()
-                .when()
-                .log().all()
-                .delete("/api/product/{id}", productId);
-
-        // then
-        response
-                .then()
-                .log().all()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-    }
-
-    private void verifyResponse(String name, String description, String author, Float price, String image, Response response) {
-        assertAll(
-                () -> Assertions.assertEquals(name, response.path("name")),
-                () -> Assertions.assertEquals(description, response.path("description")),
-                () -> Assertions.assertEquals(author, response.path("author")),
-                () -> Assertions.assertEquals(price, response.path("price")),
-                () -> Assertions.assertEquals(image, response.path("imagePath"))
-        );
+        // populate product with values
+        product.setName("Updated Test Product");
+        product.setDescription("Updated Test Product");
+        product.setPrice(20.0F);
+        product.setAuthor("Updated Test Author");
+        product.setImagePath("http://www.testimages.updateImage.jpg");
+        product.setId(productId);
+        return product;
     }
 }

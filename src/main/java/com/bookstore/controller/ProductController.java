@@ -56,7 +56,7 @@ public class ProductController {
         if (product == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        this.productService.addProduct(product);
+        this.productService.saveProduct(product);
         return new ResponseEntity<>(product, HttpStatus.CREATED);
     }
 
@@ -65,18 +65,12 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(
             @ApiParam(value = "Product ID", required = true) @PathVariable("id") Integer id,
             @ApiParam(value = "Update product object", required = true) @RequestBody Product product) {
-        Optional<Product> currentProduct = productService.findById(id);
-        if (currentProduct.isEmpty()) {
+        if (productService.findById(id).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        Product productToUpdate = currentProduct.get();
-        productToUpdate.setName(product.getName());
-        productToUpdate.setDescription(product.getDescription());
-        productToUpdate.setAuthor(product.getAuthor());
-        productToUpdate.setPrice(product.getPrice());
-        productToUpdate.setImagePath(product.getImagePath());
-        productService.addProduct(productToUpdate);
-        return new ResponseEntity<>(productToUpdate, HttpStatus.OK);
+        product.setId(id);
+        var updatedProduct = productService.saveProduct(product);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Delete a product")

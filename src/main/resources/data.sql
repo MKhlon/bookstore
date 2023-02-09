@@ -13,7 +13,7 @@ INSERT INTO products (name, description, author, price, image_path) VALUES ('Har
 INSERT INTO products (name, description, author, price, image_path) VALUES ('Baby Shark', 'Kids story about shark family', 'Internet', '200', 'http://www.testimages.baby_shark.jpg');
 INSERT INTO users (name, address, email, phone, role_id, login, password) VALUES ('Maria Khlon', 'Krakow, Dobrego Pasterza','maria_khlon@test.com', '+48111222333', '1', 'testLogin', 'testPassword');
 
-INSERT INTO bookings (user_id, product_id, delivery_address, delivery_date, delivery_time, status_id, quantity) VALUES ('1', '1', 'Poland Krakow', '2023-02-23 02:00:00', '02:00:00', '1', '1');
+INSERT INTO bookings (user_id, product_id, delivery_address, delivery_date, delivery_time, status_id, quantity) VALUES ('1', '1', 'Poland Krakow', '2022-05-15', '02:00:00', '1', '1');
 
 
 

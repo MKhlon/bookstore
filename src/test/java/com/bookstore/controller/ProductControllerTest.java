@@ -9,7 +9,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,7 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,9 +28,11 @@ public class ProductControllerTest {
 
     @Mock
     private ProductService productService;
+
     @InjectMocks
     private ProductController productController;
-    private final static Integer ID = 1;
+
+    private final static Integer ID = 1234;
     private final static String PRODUCT_NAME = "Product A";
 
     @Test
@@ -47,6 +47,7 @@ public class ProductControllerTest {
         var response = productController.getProductById(ID);
 
         // then
+        verify(productService, times(1)).findById(ID);
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals(product, response.getBody());
     }
@@ -60,8 +61,8 @@ public class ProductControllerTest {
         var response = productController.getProductById(ID);
 
         // then
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(productService, times(1)).findById(ID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
@@ -77,6 +78,7 @@ public class ProductControllerTest {
         var response = productController.listAllProducts();
 
         // then
+        verify(productService, times(1)).findAllProducts();
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals(products, response.getBody());
     }
@@ -91,6 +93,7 @@ public class ProductControllerTest {
         var response = productController.listAllProducts();
 
         // then
+        verify(productService, times(1)).findAllProducts();
         Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
@@ -98,18 +101,22 @@ public class ProductControllerTest {
     public void createProductWithValidInputShouldReturnCreatedStatus() {
         // given
         var product = new Product();
-        var description = "This is a test product";
-        product.setName(PRODUCT_NAME);
-        product.setDescription(description);
-        doNothing().when(productService).addProduct(product);
+        // productId is set because valid return from saveProduct() should have productId
+        when(productService.saveProduct(product))
+                .thenAnswer(invocation -> {
+                    Product p = invocation.getArgument(0);
+                    p.setId(333);
+                    return p;
+                });
 
         // when
         var response = productController.createProduct(product);
 
         // then
+        verify(productService, times(1)).saveProduct(product);
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assertions.assertNotNull(Objects.requireNonNull(response.getBody()).getId());
         Assertions.assertEquals(product, response.getBody());
-        verify(productService, times(1)).addProduct(product);
     }
 
     @Test
@@ -118,32 +125,30 @@ public class ProductControllerTest {
         var response = productController.createProduct(null);
 
         // then
+        verify(productService, never()).saveProduct(null);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(productService, never()).addProduct(null);
     }
 
     @Test
     public void updateProductWithValidInputShouldReturnUpdatedProduct() {
         // given
-        var initialProduct = new Product();
-        var updatedProductName = "Updated Product name";
-        initialProduct.setId(ID);
-        initialProduct.setName(PRODUCT_NAME);
-        var productToUpdate = new Product();
-        productToUpdate.setId(2);
-        productToUpdate.setName(updatedProductName);
+        var product = new Product();
+        product.setId(ID);
+        product.setName(PRODUCT_NAME);
+
+        var newProduct = new Product();
+        newProduct.setName("Updated Product name");
 
         // when
-        when(productService.findById(ID)).thenReturn(Optional.of(initialProduct));
-        doNothing().when(productService).addProduct(initialProduct);
+        when(productService.findById(ID)).thenReturn(Optional.of(product));
+        when(productService.saveProduct(newProduct)).thenReturn(newProduct);
 
         // then
-        var response = productController.updateProduct(ID, productToUpdate);
-
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(initialProduct.getName(), Objects.requireNonNull(response.getBody()).getName());
+        var response = productController.updateProduct(ID, newProduct);
         verify(productService, times(1)).findById(ID);
-        verify(productService, times(1)).addProduct(initialProduct);
+        verify(productService, times(1)).saveProduct(newProduct);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(newProduct.getName(), Objects.requireNonNull(response.getBody()).getName());
     }
 
     @Test
@@ -152,12 +157,12 @@ public class ProductControllerTest {
         when(productService.findById(ID)).thenReturn(Optional.empty());
 
         // when
-        ResponseEntity<Product> response = productController.updateProduct(ID, new Product());
+        var response = productController.updateProduct(ID, new Product());
 
         // then
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(productService, times(1)).findById(ID);
-        verify(productService, never()).addProduct(any(Product.class));
+        verify(productService, never()).saveProduct(any(Product.class));
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
@@ -171,9 +176,9 @@ public class ProductControllerTest {
         var response = productController.deleteProduct(ID);
 
         // then
+        verify(productService, times(1)).deleteById(ID);
         Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         Assertions.assertNull(response.getBody());
-        verify(productService, times(1)).deleteById(ID);
     }
 
     @Test
@@ -185,8 +190,8 @@ public class ProductControllerTest {
         var response = productController.deleteProduct(ID);
 
         // then
+        verify(productService, times(0)).deleteById(ID);
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         Assertions.assertNull(response.getBody());
-        verify(productService, times(0)).deleteById(ID);
     }
 }
