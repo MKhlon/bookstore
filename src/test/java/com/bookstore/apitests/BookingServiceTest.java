@@ -17,7 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -34,7 +33,7 @@ public class BookingServiceTest extends BaseTest {
         // given
         final var deliveryAddress = "Poland Krakow";
         final var date = "2022-05-15";
-        final var time = "02:00:00";
+        final var time = "02:00:00.000000000";
         final Integer id = 1;
         final Integer productId = 1;
 
@@ -59,9 +58,7 @@ public class BookingServiceTest extends BaseTest {
     public void testCreateBooking() {
         // given
         var booking = createBooking();
-        LocalTime bookingTime = booking.getTime();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSS");
-        String timeString = bookingTime.format(formatter);
+
         // when
         var response = given()
                 .log().all()
@@ -80,7 +77,8 @@ public class BookingServiceTest extends BaseTest {
         // then
         assumeTrue(idValue != null);
         verifyResponse(booking.getProduct().getId(), booking.getUser().getId(), booking.getDeliveryAddress(),
-                booking.getDate().toString(), timeString, booking.getStatus().getId(), booking.getQuantity(), response);
+                booking.getDate().toString(), booking.getTime().toString(), booking.getStatus().getId(),
+                booking.getQuantity(), response);
     }
 
     @Test
@@ -106,10 +104,6 @@ public class BookingServiceTest extends BaseTest {
         var updatedBooking = createBooking();
         updatedBooking.setId(idValue);
 
-        LocalTime bookingTime = updatedBooking.getTime();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSS");
-        String time = bookingTime.format(formatter);
-
         // when
         var updatedResponse = given()
                 .log().all()
@@ -126,9 +120,9 @@ public class BookingServiceTest extends BaseTest {
 
         // then
         assumeTrue(updatedResponse.path("id") != null);
-        verifyResponse(updatedBooking.getProduct().getId(), updatedBooking.getUser().getId(), updatedBooking.getDeliveryAddress(),
-                updatedBooking.getDate().toString(), time, updatedBooking.getStatus().getId(),
-                updatedBooking.getQuantity(), updatedResponse);
+        verifyResponse(updatedBooking.getProduct().getId(), updatedBooking.getUser().getId(),
+                updatedBooking.getDeliveryAddress(), updatedBooking.getDate().toString(), updatedBooking.getTime().toString(),
+                updatedBooking.getStatus().getId(), updatedBooking.getQuantity(), updatedResponse);
     }
 
     @Test

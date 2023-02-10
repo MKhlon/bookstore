@@ -32,8 +32,8 @@ public class UserServiceTest extends BaseTest {
         final var phone = "+48111222333";
         final var login = "testLogin";
         final var password = "testPassword";
-        final Integer roleId = 1;
         final var roleName = RoleType.ADMIN.name();
+        final Integer roleId = 1;
         final Integer id = 1;
 
         // when
@@ -50,14 +50,13 @@ public class UserServiceTest extends BaseTest {
 
         // then
         assumeTrue(id.equals(idValue), Messages.USER_ID_IS_NOT_AS_EXPECTED);
-
         verifyResponse(name, roleId, roleName, email, phone, address, login, password, response);
     }
 
     @Test
     public void testCreateUser() {
         // given
-        var user = createUser();
+        var user = updateUser(new User());
 
         // when
         var response = given()
@@ -82,7 +81,7 @@ public class UserServiceTest extends BaseTest {
     @Test
     public void testUpdateUser() {
         // given
-        // create a user
+        // create new user
         var user = new User();
         var userId = given()
                 .log().all()
@@ -97,17 +96,8 @@ public class UserServiceTest extends BaseTest {
                 .extract()
                 .jsonPath().getInt("id");
         // fill with updated values
+        updateUser(user);
         user.setId(userId);
-        user.setName("Test user name");
-        user.setAddress("Poland, Krakow");
-        user.setEmail("test@gmail.com");
-        user.setPhone("+44111225535");
-        user.setLogin("test login value");
-        user.setPassword("strong test password");
-        var role = new Role();
-        role.setId(1);
-        role.setName(RoleType.ADMIN);
-        user.setRole(role);
 
         // when
         var response = given()
@@ -180,18 +170,16 @@ public class UserServiceTest extends BaseTest {
         );
     }
 
-    private User createUser() {
-        var user = new User();
-        var role = new Role();
-        role.setId(1);
-        role.setName(RoleType.ADMIN);
-
+    private User updateUser(User user) {
         user.setName("Test user name");
         user.setAddress("Poland, Krakow");
         user.setEmail("test@gmail.com");
         user.setPhone("+44111225535");
         user.setLogin("test login value");
         user.setPassword("strong test password");
+        var role = new Role();
+        role.setId(1);
+        role.setName(RoleType.ADMIN);
         user.setRole(role);
         return user;
     }
