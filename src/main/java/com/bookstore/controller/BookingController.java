@@ -2,9 +2,6 @@ package com.bookstore.controller;
 
 import com.bookstore.business.BookingService;
 import com.bookstore.model.Booking;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +17,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/booking")
-@Api(value = "Booking management service")
 public class BookingController {
 
     private final BookingService bookingService;
@@ -29,19 +25,16 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
-    @ApiOperation(value = "Get booking by id", response = Booking.class)
     @GetMapping("/{id}")
-    public ResponseEntity<Booking> getBookingById(
-            @ApiParam(value = "Booking ID", required = true) @PathVariable("id") Integer id) {
+    public ResponseEntity<Booking> getBookingById(@PathVariable("id") Integer id) {
         return this.bookingService.findById(id).map(b ->
                         new ResponseEntity<>(b, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @ApiOperation(value = "Add a booking")
+
     @PostMapping
-    public ResponseEntity<Booking> createBooking(
-            @ApiParam(value = "Booking store in database", required = true) @RequestBody Booking booking) {
+    public ResponseEntity<Booking> createBooking(@RequestBody Booking booking) {
         if (booking == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -49,11 +42,10 @@ public class BookingController {
         return new ResponseEntity<>(booking, HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "Update a booking")
     @PutMapping("/{id}")
     public ResponseEntity<Booking> updateBooking(
-            @ApiParam(value = "Booking ID", required = true) @PathVariable("id") Integer id,
-            @ApiParam(value = "Update booking object", required = true) @RequestBody Booking booking) {
+            @PathVariable("id") Integer id,
+            @RequestBody Booking booking) {
         if (bookingService.findById(id).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -62,10 +54,8 @@ public class BookingController {
         return new ResponseEntity<>(updatedBooking, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Delete a booking")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Booking> deleteBooking(@ApiParam(value = "Booking ID", required = true)
-                                                 @PathVariable("id") Integer id) {
+    public ResponseEntity<Booking> deleteBooking(@PathVariable("id") Integer id) {
         Optional<Booking> booking = bookingService.findById(id);
         if (booking.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

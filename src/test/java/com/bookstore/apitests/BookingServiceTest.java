@@ -17,6 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -50,7 +51,7 @@ public class BookingServiceTest extends BaseTest {
         Integer idValue = response.path("id");
 
         // then
-        assumeTrue(id.equals(idValue), Messages.PRODUCT_ID_IS_NOT_AS_EXPECTED);
+        assumeTrue(id.equals(idValue), Messages.BOOKING_ID_IS_NOT_AS_EXPECTED);
         verifyResponse(productId, 1, deliveryAddress, date, time, 1, 1, response);
     }
 
@@ -58,7 +59,9 @@ public class BookingServiceTest extends BaseTest {
     public void testCreateBooking() {
         // given
         var booking = createBooking();
-
+        LocalTime bookingTime = booking.getTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSS");
+        String timeString = bookingTime.format(formatter);
         // when
         var response = given()
                 .log().all()
@@ -75,9 +78,9 @@ public class BookingServiceTest extends BaseTest {
         Integer idValue = response.path("id");
 
         // then
-        assumeTrue(response.path("id") != null);
-        verifyResponse(idValue, booking.getUser().getId(), booking.getDeliveryAddress(), booking.getDate().toString(),
-                booking.getTime().toString(), booking.getStatus().getId(), booking.getQuantity(), response);
+        assumeTrue(idValue != null);
+        verifyResponse(booking.getProduct().getId(), booking.getUser().getId(), booking.getDeliveryAddress(),
+                booking.getDate().toString(), timeString, booking.getStatus().getId(), booking.getQuantity(), response);
     }
 
     @Test
@@ -103,11 +106,15 @@ public class BookingServiceTest extends BaseTest {
         var updatedBooking = createBooking();
         updatedBooking.setId(idValue);
 
+        LocalTime bookingTime = updatedBooking.getTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSSS");
+        String time = bookingTime.format(formatter);
+
         // when
         var updatedResponse = given()
                 .log().all()
                 .contentType(ContentType.JSON)
-                .body(booking)
+                .body(updatedBooking)
                 .when()
                 .put(API_URL + "/" + idValue)
                 .then()
@@ -119,9 +126,9 @@ public class BookingServiceTest extends BaseTest {
 
         // then
         assumeTrue(updatedResponse.path("id") != null);
-        verifyResponse(idValue, updatedBooking.getUser().getId(), updatedBooking.getDeliveryAddress(),
-                updatedBooking.getDate().toString(), updatedBooking.getTime().toString(),
-                updatedBooking.getStatus().getId(), updatedBooking.getQuantity(), response);
+        verifyResponse(updatedBooking.getProduct().getId(), updatedBooking.getUser().getId(), updatedBooking.getDeliveryAddress(),
+                updatedBooking.getDate().toString(), time, updatedBooking.getStatus().getId(),
+                updatedBooking.getQuantity(), updatedResponse);
     }
 
     @Test
@@ -199,7 +206,7 @@ public class BookingServiceTest extends BaseTest {
         var userId = given()
                 .log().all()
                 .contentType(ContentType.JSON)
-                .body(product)
+                .body(user)
                 .when()
                 .post("/api/user")
                 .then()
