@@ -1,0 +1,19 @@
+spring:
+  profiles: dev
+  datasource:
+    url: jdbc:h2:mem:appDb;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS appDb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+    name: appDb
+
+  jpa:
+    defer-datasource-initialization: true
+    show-sql: true
+    hibernate:
+      format_sql: true
+      #change ddl-auto to 'update' if you don't want to clean data each time
+      hbm2ddl:
+        import_files:
+        auto: create
+      dialect: org.hibernate.dialect.H2Dialect
