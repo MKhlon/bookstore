@@ -1,0 +1,42 @@
+<div id="create-modal" class="w3-modal">
+    <div class="w3-modal-content w3-card-4">
+        <header class="w3-container w3-teal">
+            <span onclick="closeCreateModal()" class="w3-button w3-display-topright">&times;</span>
+            <h3>Create User</h3>
+        </header>
+        <div class="w3-container">
+            <form>
+                <br>
+                <label for="user-name-modal">User Name:</label>
+                <input type="text" id="user-name-modal" name="userName" required><br><br>
+
+                <label for="role-id-modal">Role Id:</label>
+                <input type="text" id="role-id-modal" name="roleId" value="3" disabled><br><br>
+
+                <label for="role-name-modal">Role Name:</label>
+                <select id="role-name-modal" name="roleName" disabled>
+                    <option value="CUSTOMER">CUSTOMER</option>
+                </select><br><br>
+
+                <label for="email-modal">Email:</label>
+                <input type="email" id="email-modal" name="email" required><br><br>
+
+                <label for="address-modal">Address:</label>
+                <input type="text" id="address-modal" name="address"><br><br>
+
+                <label for="phone-modal">Phone:</label>
+                <input type="tel" id="phone-modal" name="phone"><br><br>
+
+                <label for="login-modal">Login:</label>
+                <input type="text" id="login-modal" name="login" required><br><br>
+
+                <label for="password-modal">Password:</label>
+                <input type="password" id="password-modal" name="password" required><br><br>
+
+                <button type="button" class="w3-button w3-small w3-round-large w3-grey" onclick="closeCreateModal()" id="cancel-btn">Cancel</button>
+                <button type="submit" class="w3-button w3-small w3-round-large w3-blue" onclick="createUser(event)" id="save-btn">Save changes</button>
+           <br>
+            </form>
+        </div>
+    </div>
+</div>

@@ -28,4 +28,6 @@ public final class Messages {
     public static final String ADDRESS_IS_NOT_AS_EXPECTED = "Address is not as expected";
     public static final String LOGIN_IS_NOT_AS_EXPECTED = "Login is not as expected";
     public static final String PASSWORD_IS_NOT_AS_EXPECTED = "Password is not as expected";
+    public static final String NUMBER_OF_ROWS_IS_NOT_AS_EXPECTED = "Number of rows is not as expected";
+    public static final String USER_WAS_NOT_FOUND = "User was not found";
 }

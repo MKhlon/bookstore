@@ -22,6 +22,11 @@
         <hamcrest.version>2.2</hamcrest.version>
         <rest-assured.version>5.3.0</rest-assured.version>
         <allure-junit5.version>2.21.0</allure-junit5.version>
+        <selenium.version>4.8.1</selenium.version>
+        <junit-jupiter.version>5.7.1</junit-jupiter.version>
+        <junit-platform.version>1.9.2</junit-platform.version>
+        <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>3.0.0-M8</maven.surefire.plugin.version>
     </properties>
     <dependencies>
         <!-- Spring boot dependencies -->
@@ -50,6 +55,10 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -69,12 +78,6 @@
             <optional>true</optional>
         </dependency>
         <!-- Hibernate dependency -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate.version}</version>
-            <type>pom</type>
-        </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -103,6 +106,31 @@
             <version>${allure-junit5.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Selenium WebDriver -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+        <!-- Junit 5 dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-api</artifactId>
+            <version>${junit-platform.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -117,6 +145,30 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <debug>true</debug>
+                    <source>17</source>
+                    <target>17</target>
+                    <compilerArgs>
+                        <!-- this flag is required in order to obtain the name of parameters in test methods -->
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+                <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
+                    <disableXmlReport>true</disableXmlReport>
+                    <useFile>false</useFile>
                 </configuration>
             </plugin>
         </plugins>
