@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Search</title>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script src="../elements/header.js"></script>
+    <script src="../pages/users.js"></script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+<div id="header"></div>
+<div class="w3-container">
+    <br>
+    <h3><b>User search</b></h3>
+    <form id="search-form" class="grid-form">
+        <div class="w3-row-padding">
+            <div class="w3-half">
+                <label for="user-id">User Id</label>
+                <input type="number" id="user-id" name="id" size="30"><br>
+                <label for="user-name">User Name</label>
+                <input type="text" id="user-name" name="name" size="30"><br>
+                <label for="login">Login</label>
+                <input type="text" id="login" name="login" size="30"><br>
+            </div>
+            <div class="w3-half">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address" size="30"><br>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" size="30"><br>
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone" size="30"><br>
+                <label for="role">Role</label>
+                <select id="role" name="role">
+                    <option value="select role">---Select a role---</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Customer</option>
+                    <option value="manager">Manager</option>
+                </select><br>
+            </div>
+            <button class="w3-button w3-small w3-round-large w3-blue" type="button" id="search-btn">Search</button>
+        </div>
+    </form>
+</div>
+<br>
+<div class="w3-container">
+    <h3>Search Results</h3>
+    <table id="search-results" class="w3-table-all">
+        <tr>
+            <th>User Name</th>
+            <th>User Id</th>
+            <th>Address</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Login</th>
+            <th>Role</th>
+            <th>Role Id</th>
+        </tr>
+    </table>
+    <br>
+    <br>
+    <div class="w3-bar">
+        <button class="w3-button w3-small w3-round-large w3-teal" type="button" id="create-btn" onclick="openCreateModal()">Create</button>
+        <button class="w3-button w3-small w3-round-large w3-blue" type="button" id="edit-btn" onclick="editUser()">Edit</button>
+        <button class="w3-button w3-small w3-round-large w3-red" type="button" id="delete-btn" onclick="deleteUser()">Delete</button>
+    </div>
+</div>
+</body>
+</html>
